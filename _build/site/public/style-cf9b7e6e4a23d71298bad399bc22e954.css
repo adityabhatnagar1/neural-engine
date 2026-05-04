@@ -1,0 +1,19 @@
+@font-face {
+  font-family: "CustomFont";
+  src: url("./assets/fonts/font.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  font-family: "CustomFont", sans-serif !important;
+}
+
+span.text-md.sm\:text-xl.tracking-tight.sm\:mr-5 {
+  display: none !important;
+}
+
+/* Remove "Made with MyST" badge completely */
+a.myst-made-with-myst {
+  display: none !important;
+}
