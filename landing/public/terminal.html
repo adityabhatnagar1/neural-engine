@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terminal</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body,
+      #root {
+        width: 100%;
+        height: 100%;
+        background: #1a1b26;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      const { useState, useRef, useEffect, useCallback } = React;
+
+      // ── YOUR DATA ───────────────────────────────
+
+      const ABOUT = [
+        "Aditya Bhatnagar",
+        "Sophomore engineering student exploring systems,",
+        "compute, architecture, and strange machines.",
+        "",
+        "Currently learning Rust alongside C while trying",
+        "to understand how computation actually works",
+        "beneath layers of abstraction.",
+        "",
+        "I read old papers sometimes.",
+        "I play piano when the compiler fights back lol.",
+      ];
+
+      const SKILLS = {
+        programming: ["Rust", "C", "Python", "Linux/Bash"],
+
+        computing: [
+          "Computer Architecture",
+          "Systems Programming",
+          "Operating Systems",
+        ],
+
+        hardware: [
+          "Analog Electronics",
+          "Analog Circuits",
+          "Neuromorphic Systems",
+          "Embedded Systems",
+        ],
+      };
+
+      const PROJECTS = [
+        {
+          name: "Light Neural Engine",
+          desc: "Curated archive of seminal papers on neural computation, plasticity, and brain-inspired machinery.",
+        },
+
+        {
+          name: "Resonate-and-Fire Neuron Model",
+          desc: "Implementation of an all-digital resonate-and-fire neuron architecture.",
+        },
+
+        {
+          name: "Rust Audio Routing Experiment",
+          desc: "Systems-level audio routing experiments written in Rust.",
+        },
+
+        {
+          name: "Systems Notes",
+          desc: "Ongoing explorations into memory, architecture, compute, and operating systems.",
+        },
+      ];
+
+      // ────────────────────────────────────────────
+
+      const ASCII_ART = `
+      ⠀⠀⠀⠀⣀⣠⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢀⣴⣾⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢀⣴⠿⢟⣛⣩⣤⣶⣶⣶⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⢀⣴⣿⠿⠸⣿⣿⣿⣿⣿⣿⡿⢿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⢠⠞⠉⠀⠀⠀⣿⠋⠻⣿⣿⣿⠀⣦⣿⠏⠀⠀⠀⢀⣀⣀⣀⣀⣀⠀⠀
+⢠⠏⠀⠀⠀⠀⠀⠻⣤⣷⣿⣿⣿⣶⢟⣁⣒⣒⡋⠉⠉⠁⠀⠀⠀⠈⠉⡧
+⢻⡀⠀⠀⠀⠀⠀⣀⡤⠌⢙⣛⣛⣵⣿⣿⡛⠛⠿⠃⠀⠀⠀⠀⠀⢀⡜⠁
+⠀⠉⠙⠒⠒⠛⠉⠁⠀⠸⠛⠉⠉⣿⣿⣿⣿⣦⣄⠀⠀⠀⢀⣠⠞⠁⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⡿⣿⣿⣷⡄⠞⠋⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣷⡻⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢨⣑⡙⠻⠿⠿⠈⠙⣿⣧⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣷⡀⠀⠀⠀⠀⢹⣿⣆⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⣿⡇⠀⠀⠀⠀⠸⣿⣿⡄⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠁⠀⠀⠀⠀⠀⡿⣿⣿⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠀⠀⠀⠀⠀
+      `;
+
+      const SYSTEM_INFO = [
+        { key: "user", value: "Aditya_Bhatnagar@portfolio", color: "#bb9af7" },
+        { key: null, value: "─────────────────", color: "#3b3d57" },
+        { key: "OS", value: "Aditya's Linux x64", color: "#7dcfff" },
+        {
+          key: "Focus",
+          value: "Electronics and Communications Engineering",
+          color: "#7dcfff",
+        },
+        { key: "Shell", value: "zsh 5.9 + oh-my-zsh", color: "#7dcfff" },
+        { key: "WM", value: "Wayland", color: "#7dcfff" },
+        { key: "Theme", value: "Archive Black", color: "#7dcfff" },
+        { key: "Font", value: "JetBrains Mono", color: "#7dcfff" },
+        { key: "Status", value: "Building My World! :)", color: "#9ece6a" },
+      ];
+
+      // const TN = {
+      //   bg: "#1a1b26",
+      //   bgDark: "#13141f",
+      //   bgPanel: "#16161e",
+      //   border: "#2a2b3d",
+      //   borderHi: "#3b3d57",
+      //   text: "#a9b1d6",
+      //   textDim: "#565f89",
+      //   blue: "#7aa2f7",
+      //   cyan: "#7dcfff",
+      //   green: "#9ece6a",
+      //   red: "#f7768e",
+      //   yellow: "#e0af68",
+      //   purple: "#bb9af7",
+      // };
+
+      const TN = {
+        bg: "#0b0b0b",
+        bgDark: "#000000",
+        bgPanel: "#111111",
+
+        border: "#242424",
+        borderHi: "#333333",
+
+        text: "#f7f5f2",
+        textDim: "#8a8a8a",
+
+        blue: "#f7f5f2",
+        cyan: "#e8202e",
+        green: "#f7f5f2",
+        red: "#e8202e",
+        yellow: "#d8d8d8",
+        purple: "#c0c0c0",
+      };
+
+      // const COMMANDS = {
+      //   help: () => ({
+      //     lines: [
+      //       { text: "available commands", color: TN.blue, bold: true },
+      //       { text: "about → engineer profile" },
+      //       { text: "skills → system diagnostics" },
+      //       { text: "projects → active modules" },
+      //       { text: "clear → wipe screen" },
+      //     ],
+      //   }),
+      //   about: () => ({ lines: ABOUT.map((t) => ({ text: t })) }),
+      //   skills: () => ({
+      //     lines: [
+      //       { text: "PROGRAMMING", bold: true },
+      //       ...SKILLS.programming.map((s) => ({ text: "• " + s })),
+      //       { text: "" },
+      //       { text: "COMPUTING", bold: true },
+      //       ...SKILLS.computing.map((s) => ({ text: "• " + s })),
+      //       { text: "" },
+      //       { text: "HARDWARE", bold: true },
+      //       ...SKILLS.hardware.map((s) => ({ text: "• " + s })),
+      //     ],
+      //   }),
+      //   projects: () => ({
+      //     lines: PROJECTS.flatMap((p) => [
+      //       { text: p.name, bold: true },
+      //       { text: p.desc },
+      //       { text: "" },
+      //     ]),
+      //   }),
+      //   clear: () => null,
+      // };
+
+      const COMMANDS = {
+        help: () => ({
+          lines: [
+            { text: "available commands", color: TN.red, bold: true },
+            { text: "about      → engineer profile" },
+            { text: "skills     → current stack" },
+            { text: "projects   → active builds" },
+            { text: "signals    → strange observations" },
+            { text: "focus      → current obsessions" },
+            { text: "music      → piano logs" },
+            { text: "clear      → wipe screen" },
+          ],
+        }),
+
+        about: () => ({
+          lines: ABOUT.map((t) => ({ text: t })),
+        }),
+
+        skills: () => ({
+          lines: [
+            { text: "PROGRAMMING", bold: true },
+            ...SKILLS.programming.map((s) => ({ text: "• " + s })),
+
+            { text: "" },
+
+            { text: "COMPUTING", bold: true },
+            ...SKILLS.computing.map((s) => ({ text: "• " + s })),
+
+            { text: "" },
+
+            { text: "HARDWARE", bold: true },
+            ...SKILLS.hardware.map((s) => ({ text: "• " + s })),
+          ],
+        }),
+
+        projects: () => ({
+          lines: PROJECTS.flatMap((p) => [
+            { text: p.name, bold: true },
+            { text: p.desc },
+            { text: "" },
+          ]),
+        }),
+
+        signals: () => ({
+          lines: [
+            {
+              text: "Tiny silicon switches accidentally built civilization.",
+              color: TN.cyan,
+            },
+            {
+              text: "Modern CPUs contain billions of MOSFETs switching billions of times per second.",
+            },
+            { text: "" },
+
+            {
+              text: "Oscilloscopes are proof that electricity can look beautiful.",
+              color: "#666",
+            },
+            {
+              text: "Ever tried tweaking waveforms at 2AM? Dangerous hobby.",
+            },
+            { text: "" },
+
+            {
+              text: "Analog circuits are emotionally unstable.",
+              color: TN.yellow,
+            },
+            {
+              text: "One capacitor ruins your entire evening.",
+            },
+          ],
+        }),
+
+        focus: () => ({
+          lines: [
+            { text: "CURRENTLY FOCUSING ON", bold: true },
+            { text: "• Rust systems programming" },
+            { text: "• GPU compute and CUDA" },
+            { text: "• Neuromorphic hardware" },
+            { text: "• Computer architecture" },
+            { text: "• Signal processing" },
+          ],
+        }),
+
+        music: () => ({
+          lines: [
+            { text: "PIANO_LOG", bold: true, color: TN.purple },
+            { text: "" },
+            { text: "When the workload becomes overwhelming," },
+            { text: "I usually disappear back to the piano for a while." },
+            { text: "" },
+            { text: "Current state:" },
+            { text: "left hand suffering." },
+          ],
+        }),
+
+        clear: () => null,
+      };
+
+      function Prompt() {
+        return (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              userSelect: "none",
+            }}
+          >
+            <span style={{ color: TN.cyan, fontWeight: 700 }}>❯</span>
+            <span style={{ color: TN.red, fontWeight: 700 }}>~</span>
+            <span style={{ color: TN.textDim }}>❯</span>
+          </span>
+        );
+      }
+
+      function Neofetch() {
+        return (
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "32px",
+              marginBottom: "28px",
+              padding: "16px 0",
+            }}
+          >
+            <pre
+              style={{
+                margin: 0,
+                fontSize: "11px",
+                lineHeight: "1.2",
+                color: "#d97aa6",
+                fontWeight: 700,
+                whiteSpace: "pre",
+                flexShrink: 0,
+              }}
+            >
+              {ASCII_ART}
+            </pre>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "3px",
+                justifyContent: "center",
+              }}
+            >
+              {SYSTEM_INFO.map((row, i) =>
+                row.key === null ? (
+                  <div key={i} style={{ color: TN.border, fontSize: "12px" }}>
+                    {row.value}
+                  </div>
+                ) : (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      fontSize: "12px",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: row.color,
+                        fontWeight: 700,
+                        minWidth: "60px",
+                      }}
+                    >
+                      {row.key}
+                    </span>
+                    <span style={{ color: TN.textDim }}>│</span>
+                    <span style={{ color: TN.text }}>{row.value}</span>
+                  </div>
+                ),
+              )}
+              <div style={{ display: "flex", gap: "5px", marginTop: "10px" }}>
+                {[
+                  TN.bgDark,
+                  TN.red,
+                  TN.green,
+                  TN.yellow,
+                  TN.blue,
+                  TN.purple,
+                  TN.cyan,
+                  "#c0caf5",
+                ].map((c) => (
+                  <span
+                    key={c}
+                    style={{
+                      display: "inline-block",
+                      width: "14px",
+                      height: "14px",
+                      background: c,
+                      borderRadius: "3px",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function HistoryEntry({ entry }) {
+        return (
+          <div style={{ marginBottom: "14px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                flexWrap: "wrap",
+              }}
+            >
+              <Prompt />
+              <span style={{ color: TN.text }}>{entry.cmd}</span>
+            </div>
+            {entry.output &&
+              entry.output.lines.map((line, i) => (
+                <div
+                  key={i}
+                  style={{
+                    paddingLeft: "22px",
+                    fontSize: "12px",
+                    lineHeight: "1.7",
+                    color: line.color || TN.text,
+                    fontWeight: line.bold ? 700 : 400,
+                    minHeight: "6px",
+                  }}
+                >
+                  {line.text}
+                </div>
+              ))}
+            {entry.error && (
+              <div
+                style={{ paddingLeft: "22px", fontSize: "12px", color: TN.red }}
+              >
+                zsh: command not found: {entry.cmd}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      function Terminal() {
+        const [history, setHistory] = useState([]);
+        const [input, setInput] = useState("");
+        const [cmdHistory, setCmdHistory] = useState([]);
+        const [cmdIndex, setCmdIndex] = useState(-1);
+        const [focused, setFocused] = useState(false);
+
+        const inputRef = useRef(null);
+        const bodyRef = useRef(null);
+
+        useEffect(() => {
+          if (bodyRef.current)
+            bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+        }, [history]);
+
+        const focusInput = useCallback(() => inputRef.current?.focus(), []);
+
+        const runCommand = useCallback((raw) => {
+          const cmd = raw.trim().toLowerCase();
+          if (!cmd) return;
+          setCmdHistory((prev) => [raw, ...prev]);
+          setCmdIndex(-1);
+          if (cmd === "clear") {
+            setHistory([]);
+            return;
+          }
+          const handler = COMMANDS[cmd];
+          if (handler) {
+            const output = handler();
+            setHistory((prev) => [...prev, { cmd: raw, output }]);
+          } else {
+            setHistory((prev) => [...prev, { cmd: raw, error: true }]);
+          }
+        }, []);
+
+        const handleKeyDown = useCallback(
+          (e) => {
+            if (e.key === "Enter") {
+              runCommand(input);
+              setInput("");
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setCmdIndex((prev) => {
+                const next = Math.min(prev + 1, cmdHistory.length - 1);
+                setInput(cmdHistory[next] ?? "");
+                return next;
+              });
+            } else if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setCmdIndex((prev) => {
+                const next = Math.max(prev - 1, -1);
+                setInput(next === -1 ? "" : (cmdHistory[next] ?? ""));
+                return next;
+              });
+            }
+          },
+          [input, runCommand, cmdHistory],
+        );
+
+        return (
+          <>
+            <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+            * { box-sizing: border-box; }
+            body { font-family: 'JetBrains Mono', monospace; }
+            .t-scroll::-webkit-scrollbar { width: 4px; }
+            .t-scroll::-webkit-scrollbar-track { background: transparent; }
+            .t-scroll::-webkit-scrollbar-thumb { background: ${TN.borderHi}; border-radius: 2px; }
+            .t-input {
+              background: transparent; border: none; outline: none;
+              color: ${TN.text}; font-family: 'JetBrains Mono', monospace;
+              font-size: 13px; caret-color: ${TN.cyan}; width: 100%;
+            }
+            .t-chip {
+              padding: 2px 8px; border-radius: 4px; background: ${TN.bgPanel};
+              color: ${TN.textDim}; font-size: 11px; border: 1px solid ${TN.border};
+              cursor: pointer; transition: border-color .15s, color .15s; user-select: none;
+            }
+            .t-chip:hover { border-color: ${TN.blue}; color: ${TN.blue}; }
+            @keyframes blink { 0%,100%{opacity:.85} 50%{opacity:0} }
+            .t-cursor {
+              display: inline-block; width: 8px; height: 15px;
+              background: ${TN.cyan}; vertical-align: middle; margin-left: 1px;
+              animation: blink 1.1s step-end infinite; border-radius: 1px;
+            }
+          `}</style>
+
+            <div
+              onClick={focusInput}
+              style={{
+                width: "100%",
+                height: "100%",
+                background: TN.bg,
+                display: "flex",
+                flexDirection: "column",
+                cursor: "text",
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >
+              {/* title bar */}
+              <div
+                style={{
+                  height: "38px",
+                  background: TN.bgPanel,
+                  borderBottom: `1px solid ${TN.border}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  userSelect: "none",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: TN.textDim,
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  TERMINAL_v2.1X1
+                </span>
+              </div>
+
+              {/* body */}
+              <div
+                ref={bodyRef}
+                className="t-scroll"
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: "20px 24px",
+                  fontSize: "13px",
+                  lineHeight: "1.6",
+                  color: TN.text,
+                }}
+              >
+                <Neofetch />
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: TN.textDim,
+                    marginBottom: "20px",
+                  }}
+                >
+                  type <span style={{ color: TN.cyan }}>help</span> to see
+                  available commands
+                </div>
+                {history.map((entry, i) => (
+                  <HistoryEntry key={i} entry={entry} />
+                ))}
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <Prompt />
+                  <div
+                    style={{
+                      position: "relative",
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <input
+                      ref={inputRef}
+                      className="t-input"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onFocus={() => setFocused(true)}
+                      onBlur={() => setFocused(false)}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                    />
+                    {focused && <span className="t-cursor" />}
+                  </div>
+                </div>
+              </div>
+
+              {/* status bar */}
+              <div
+                style={{
+                  height: "24px",
+                  background: TN.bgDark,
+                  borderTop: `1px solid ${TN.border}`,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 16px",
+                  flexShrink: 0,
+                  gap: "12px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: TN.bgDark,
+                    background: TN.blue,
+                    borderRadius: "3px",
+                    padding: "1px 7px",
+                    fontWeight: 700,
+                  }}
+                >
+                  NORMAL
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "6px",
+                    flex: 1,
+                    overflowX: "auto",
+                  }}
+                >
+                  {["help", "about", "skills", "projects"].map((cmd) => (
+                    <span
+                      key={cmd}
+                      className="t-chip"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        runCommand(cmd);
+                        setInput("");
+                      }}
+                    >
+                      {cmd}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<Terminal />);
+    </script>
+  </body>
+</html>
