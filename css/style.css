@@ -50,14 +50,14 @@
 
 @font-face {
   font-family: "Bitter";
-  src: url("/dump/bitter/Bitter-VariableFont_wght.ttf") format("truetype");
+  src: url("../dump/bitter/Bitter-VariableFont_wght.ttf") format("truetype");
   font-weight: 100 900;
   font-style: normal;
 }
 
 @font-face {
   font-family: "Bitter";
-  src: url("/dump/bitter/Bitter-Italic-VariableFont_wght.ttf")
+  src: url("../dump/bitter/Bitter-Italic-VariableFont_wght.ttf")
     format("truetype");
   font-weight: 100 900;
   font-style: italic;
@@ -65,7 +65,7 @@
 
 @font-face {
   font-family: "OwnersX";
-  src: url("/dump/ownersx/Owners-XXNarrow-Black.otf") format("opentype");
+  src: url("../dump/ownersx/Owners-XXNarrow-Black.otf") format("opentype");
   font-weight: 900;
   font-style: normal;
 }
@@ -942,7 +942,7 @@ ul {
 
 /* === FOOTER === */
 .site-footer {
-  background-image: url("/dump/footer.jpg");
+  background-image: url("../dump/footer.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
